@@ -2,6 +2,7 @@ import { Accept } from 'react-dropzone';
 import { concatMap, from, lastValueFrom, map, Observable, toArray } from 'rxjs';
 
 import { DataFrame, DataFrameJSON, dataFrameToJSON, toDataFrame } from '@grafana/data';
+import { v6 as uuidv6 } from 'uuid';
 import { getBackendSrv } from '@grafana/runtime';
 
 export interface FileImportResult {
@@ -68,7 +69,6 @@ export async function fileHandler(file: File) {
           res.dataFrames.map((x) => dataFrameToJSON(x)),
           res.file.name,
           res.file.name,
-          res.file.name
         );
 
         // Return the observable for the post request
@@ -79,32 +79,9 @@ export async function fileHandler(file: File) {
       toArray() // Collect all metadata.names into an array
     )
   );
-
-  return new Observable<string>((subscriber) => {
-    const backendSrv = getBackendSrv();
-    const dfObs = filesToDataframes([file]);
-    const datasetIdentifiers: string[] = [];
-    dfObs.subscribe({
-      next: async (res) => {
-        const ds = makeDataset(
-          res.dataFrames.map((x) => dataFrameToJSON(x)),
-          res.file.name,
-          res.file.name,
-          res.file.name
-        );
-        const result = await backendSrv.post('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds);
-        console.log(result);
-        subscriber.next(result.metadata.name);
-        datasetIdentifiers.push(result.metadata.name);
-      },
-      complete: () => {
-        // subscriber.next(datasetIdentifiers);
-      },
-    });
-  });
 }
 
-function makeDataset(frames: DataFrameJSON[], title: string, description: string, name: string) {
+function makeDataset(frames: DataFrameJSON[], title: string, description: string) {
   const newFrames = frames.map((f) => {
     const newFields = f.schema?.fields.map((x) => ({
       name: x.name,
@@ -118,7 +95,7 @@ function makeDataset(frames: DataFrameJSON[], title: string, description: string
     kind: 'Dataset',
     apiVersion: 'dataset.grafana.app/v0alpha1',
     metadata: {
-      name: name,
+        name: uuidv6(),
     },
     spec: {
       title: title,

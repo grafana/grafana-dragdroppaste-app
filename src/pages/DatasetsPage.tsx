@@ -53,7 +53,7 @@ function DatasetsPage() {
           return (
             <li key={ds.metadata.name}>
             <Link className={s.link} to={prefixRoute(`${ROUTES.dataset}/${ds.metadata.name}`)}>
-              {ds.metadata.name}
+              {ds.spec.title}
             </Link>
               <IconButton
                 onClick={() => {

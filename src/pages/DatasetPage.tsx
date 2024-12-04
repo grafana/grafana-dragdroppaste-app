@@ -50,9 +50,11 @@ function DatasetPage() {
   return (
     <PluginPage>
       <div>
-        <h1>{dataset?.metadata.name}</h1>
+        <h1>{dataset?.spec.title}</h1>
         {dataset?.spec.data.map((df) => {
-          return <Table width={800} height={800} key={df.title} data={fixDataFrame(dataFrameFromJSON(df), theme)}></Table>;
+          return (
+            <Table width={800} height={800} key={df.title} data={fixDataFrame(dataFrameFromJSON(df), theme)}></Table>
+          );
         })}
       </div>
     </PluginPage>
