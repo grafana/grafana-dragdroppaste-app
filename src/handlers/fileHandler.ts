@@ -1,15 +1,13 @@
-
 import { Accept } from 'react-dropzone';
-import { Observable } from 'rxjs';
+import { concatMap, from, lastValueFrom, map, Observable, toArray } from 'rxjs';
 
 import { DataFrame, DataFrameJSON, dataFrameToJSON, toDataFrame } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 
 export interface FileImportResult {
-    dataFrames: DataFrame[];
-    file: File;
-  }
-  
+  dataFrames: DataFrame[];
+  file: File;
+}
 
 function getFileExtensions(acceptedFiles: Accept) {
   const fileExtentions = new Set<string>();
@@ -60,29 +58,51 @@ export function filesToDataframes(files: File[]): Observable<FileImportResult> {
   });
 }
 
+export async function fileHandler(file: File) {
+  const backendSrv = getBackendSrv();
 
+  return await lastValueFrom(
+    filesToDataframes([file]).pipe(
+      concatMap((res) => {
+        const ds = makeDataset(
+          res.dataFrames.map((x) => dataFrameToJSON(x)),
+          res.file.name,
+          res.file.name,
+          res.file.name
+        );
 
-export function fileHandler(file: File) {
-    return new Observable<string[]>((subscriber) => {
-      const backendSrv = getBackendSrv();
-      const dfObs = filesToDataframes([file]);
-      const datasetIdentifiers: string[] = [];
-      dfObs.subscribe({
-        next: async (res) => {
-          const ds = makeDataset(res.dataFrames.map((x) => dataFrameToJSON(x)), res.file.name, res.file.name, res.file.name);
-          const result = await backendSrv.post(
-            '/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets',
-            ds
-          );
-          datasetIdentifiers.push(result.metadata.name);
-        },
-        complete: () => {
-            subscriber.next(datasetIdentifiers)
-        },
-      });
+        // Return the observable for the post request
+        return from(backendSrv.post('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds)).pipe(
+          map((result) => result.metadata.name) // Extract metadata.name from the result
+        );
+      }),
+      toArray() // Collect all metadata.names into an array
+    )
+  );
+
+  return new Observable<string>((subscriber) => {
+    const backendSrv = getBackendSrv();
+    const dfObs = filesToDataframes([file]);
+    const datasetIdentifiers: string[] = [];
+    dfObs.subscribe({
+      next: async (res) => {
+        const ds = makeDataset(
+          res.dataFrames.map((x) => dataFrameToJSON(x)),
+          res.file.name,
+          res.file.name,
+          res.file.name
+        );
+        const result = await backendSrv.post('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds);
+        console.log(result);
+        subscriber.next(result.metadata.name);
+        datasetIdentifiers.push(result.metadata.name);
+      },
+      complete: () => {
+        // subscriber.next(datasetIdentifiers);
+      },
     });
-};
-
+  });
+}
 
 function makeDataset(frames: DataFrameJSON[], title: string, description: string, name: string) {
   const newFrames = frames.map((f) => {

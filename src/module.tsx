@@ -31,9 +31,9 @@ export const plugin = new AppPlugin<{}>()
     title: 'foo',
     targets: ['dashboard/grid'],
     //@ts-ignore
-    hook: (data) => {
+    hook: async (data) => {
       if (data instanceof File) {
-        return fileHandler(data);
+        return await fileHandler(data);
       }
     },
   });
