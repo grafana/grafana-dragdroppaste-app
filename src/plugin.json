@@ -22,30 +22,16 @@
   "includes": [
     {
       "type": "page",
-      "name": "Page One",
-      "path": "/a/%PLUGIN_ID%/one",
+      "name": "Datasets",
+      "path": "/a/%PLUGIN_ID%/datasets",
       "addToNav": true,
       "defaultNav": true
     },
     {
       "type": "page",
-      "name": "Page Two",
-      "path": "/a/%PLUGIN_ID%/two",
-      "addToNav": true,
-      "defaultNav": false
-    },
-    {
-      "type": "page",
-      "name": "Page Three",
-      "path": "/a/%PLUGIN_ID%/three",
-      "addToNav": true,
-      "defaultNav": false
-    },
-    {
-      "type": "page",
-      "name": "Page Four",
-      "path": "/a/%PLUGIN_ID%/four",
-      "addToNav": true,
+      "name": "Dataset",
+      "path": "/a/%PLUGIN_ID%/dataset",
+      "addToNav": false,
       "defaultNav": false
     },
     {
