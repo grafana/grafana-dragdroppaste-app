@@ -2,7 +2,8 @@
 import { Accept } from 'react-dropzone';
 import { Observable } from 'rxjs';
 
-import { DataFrame, toDataFrame } from '@grafana/data';
+import { DataFrame, DataFrameJSON, dataFrameToJSON, toDataFrame } from '@grafana/data';
+import { getBackendSrv } from '@grafana/runtime';
 
 export interface FileImportResult {
     dataFrames: DataFrame[];
@@ -62,5 +63,47 @@ export function filesToDataframes(files: File[]): Observable<FileImportResult> {
 
 
 export function fileHandler(file: File) {
-    return filesToDataframes([file]);
+    return new Observable<string[]>((subscriber) => {
+      const backendSrv = getBackendSrv();
+      const dfObs = filesToDataframes([file]);
+      const datasetIdentifiers: string[] = [];
+      dfObs.subscribe({
+        next: async (res) => {
+          const ds = makeDataset(res.dataFrames.map((x) => dataFrameToJSON(x)), res.file.name, res.file.name, res.file.name);
+          const result = await backendSrv.post(
+            '/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets',
+            ds
+          );
+          datasetIdentifiers.push(result.metadata.name);
+        },
+        complete: () => {
+            subscriber.next(datasetIdentifiers)
+        },
+      });
+    });
 };
+
+
+function makeDataset(frames: DataFrameJSON[], title: string, description: string, name: string) {
+  const newFrames = frames.map((f) => {
+    const newFields = f.schema?.fields.map((x) => ({
+      name: x.name,
+      type: x.type,
+      typeInfo: { frame: x.type === 'number' ? 'int64' : x.type, nullable: true },
+    }));
+    return { ...f, schema: { ...f.schema, fields: newFields } };
+  });
+
+  return {
+    kind: 'Dataset',
+    apiVersion: 'dataset.grafana.app/v0alpha1',
+    metadata: {
+      name: name,
+    },
+    spec: {
+      title: title,
+      description: description,
+      data: newFrames,
+    },
+  };
+}
