@@ -29,13 +29,6 @@
     },
     {
       "type": "page",
-      "name": "Dataset",
-      "path": "/a/%PLUGIN_ID%/dataset",
-      "addToNav": false,
-      "defaultNav": false
-    },
-    {
-      "type": "page",
       "icon": "cog",
       "name": "Configuration",
       "path": "/plugins/%PLUGIN_ID%",
