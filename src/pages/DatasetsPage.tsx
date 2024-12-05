@@ -48,7 +48,6 @@ const ListView = () => {
   };
 
   return (
-    <PluginPage>
       <div>
         <ul>
         {listState.map((ds) => {
@@ -77,7 +76,6 @@ const ListView = () => {
         })}
         </ul>
       </div>
-    </PluginPage>
   );
 }
 
@@ -109,7 +107,6 @@ const DatasetView = ({ name }: {name: string}) => {
   };
 
   return (
-    <PluginPage>
       <div>
         <h1>{dataset?.spec.title}</h1>
         <AutoSizer>
@@ -129,18 +126,13 @@ const DatasetView = ({ name }: {name: string}) => {
           )}
         </AutoSizer>
       </div>
-    </PluginPage>
   );
 }
 
 
 function DatasetsPage() {
   const { name } = useParams<{ name: string }>();
-  if(!name) {
-    return (<ListView></ListView>)
-  } else {
-    return (<DatasetView name={name}></DatasetView>)
-  }
+  return <PluginPage>{!name ? <ListView></ListView> : <DatasetView name={name}></DatasetView>}</PluginPage>;
 }
 
 export default DatasetsPage;

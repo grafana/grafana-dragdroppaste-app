@@ -9,7 +9,7 @@ function App(props: AppRootProps) {
 
       {/* Default page */}
       <Route path="*" element={<DatasetsPage />} />
-      <Route  path={`${ROUTES.datasets}/:name?`} element={<DatasetsPage />} />
+      <Route path={`${ROUTES.datasets}/:id?`} element={<DatasetsPage />} />
     </Routes>
   );
 }
