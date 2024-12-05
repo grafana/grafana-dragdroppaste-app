@@ -1,7 +1,9 @@
 package plugin
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -21,15 +23,65 @@ func (a *App) handleFile(w http.ResponseWriter, req *http.Request) {
 	path := req.URL.Path
 	fileID := strings.TrimPrefix(path, "/file/")
 
-	w.Header().Add("Content-Type", "application/json")
-
-	http.Get(req.Host + "apis/dataset.grafana.app/v0alpha1/namespaces/default/file/" + fileID + "/data/")
-
-	if _, err := w.Write([]byte(`{"message": "` + fileID + `"}`)); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// need to fetch host and basic auth from somewhere? should be stored somewhere
+	req, err := http.NewRequest("GET", "http://localhost:3000/apis/file.grafana.app/v0alpha1/namespaces/default/files/"+fileID+"/data", nil)
+	if err != nil {
+		http.Error(w, "err", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
+	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("admin:admin")))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, "err", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "err", http.StatusInternalServerError)
+		return
+	}
+
+	var data interface{}
+	err = json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		http.Error(w, "err", http.StatusInternalServerError)
+		return
+	}
+
+	base64Contents := ""
+	if dataMap, ok := data.(map[string]interface{}); ok {
+		if spec, ok := dataMap["spec"].(map[string]interface{}); ok {
+			if dataArray, ok := spec["data"].([]interface{}); ok {
+				// Assuming the "data" array has at least one element
+				if dataObj, ok := dataArray[0].(map[string]interface{}); ok {
+					if contents, ok := dataObj["Contents"].(string); ok {
+						base64Contents = strings.Split(contents, ",")[1]
+					}
+				}
+			}
+		}
+	}
+
+	if base64Contents == "" {
+		http.Error(w, "err", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "image/jpeg")
+	imageData, err := base64.StdEncoding.DecodeString(base64Contents)
+	if err != nil {
+		http.Error(w, "Failed to decode Base64 image", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Write(imageData)
 }
 
 // handleEcho is an example HTTP POST resource that accepts a JSON with a "message" key and
