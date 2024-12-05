@@ -22,6 +22,6 @@ export function constructPanel(ds: Dataset) {
     datasource: { uid: 'fe5xn8w5do4xsf', type: 'yesoreyeram-infinity-datasource' },
   };
 
-  return panel;
+  return { icon: '', title: '', panel: panel };
 
 }
