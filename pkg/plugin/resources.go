@@ -3,12 +3,29 @@ package plugin
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 // handlePing is an example HTTP GET resource that returns a {"message": "ok"} JSON response.
 func (a *App) handlePing(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write([]byte(`{"message": "ok"}`)); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) handleFile(w http.ResponseWriter, req *http.Request) {
+
+	path := req.URL.Path
+	fileID := strings.TrimPrefix(path, "/file/")
+
+	w.Header().Add("Content-Type", "application/json")
+
+	http.Get(req.Host + "apis/dataset.grafana.app/v0alpha1/namespaces/default/file/" + fileID + "/data/")
+
+	if _, err := w.Write([]byte(`{"message": "` + fileID + `"}`)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -41,4 +58,5 @@ func (a *App) handleEcho(w http.ResponseWriter, req *http.Request) {
 func (a *App) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/ping", a.handlePing)
 	mux.HandleFunc("/echo", a.handleEcho)
+	mux.HandleFunc("/file/{file}", a.handleFile)
 }
