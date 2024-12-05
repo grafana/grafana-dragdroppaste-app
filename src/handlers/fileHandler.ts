@@ -64,17 +64,19 @@ export function filesToDataframes(files: File[]): Observable<FileImportResult> {
 export async function fileHandler(file: File) {
   const backendSrv = getBackendSrv();
 
+  const sendDataset = async (ds: any, df: DataFrameJSON[]) => {
+    const result = await backendSrv.post<Dataset>('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds);
+    return { ds: result, originalFrames: df }
+  };
+
   const res = await lastValueFrom(
     filesToDataframes([file]).pipe(
       concatMap((res) => {
-        const ds = makeDataset(
-          res.dataFrames.map((x) => dataFrameToJSON(x)),
-          res.file.name,
-          res.file.name
-        );
+        const df = res.dataFrames.map((x) => dataFrameToJSON(x));
+        const ds = makeDataset(df, res.file.name, res.file.name);
 
         // Return the observable for the post request
-        return from(backendSrv.post<Dataset>('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds));
+        return from(sendDataset(ds, df));
       }),
       toArray() // Collect all metadata.names into an array
     )
@@ -82,6 +84,7 @@ export async function fileHandler(file: File) {
 
   return constructPanel(res[0]);
 }
+
 
 function makeDataset(frames: DataFrameJSON[], title: string, description: string) {
   const newFrames = frames.map((f) => {

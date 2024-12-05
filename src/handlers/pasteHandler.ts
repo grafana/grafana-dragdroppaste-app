@@ -44,7 +44,7 @@ export async function pasteHandler(data: string) {
 
   const result = await backendSrv.post('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds) as Dataset;
 
-  return constructPanel(result);
+  return constructPanel({ ds: result, originalFrames: [df] });
 }
 
 function makeDataset(frames: DataFrameJSON[], title: string, description: string) {

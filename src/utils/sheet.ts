@@ -3,7 +3,7 @@ import { read, utils, WorkSheet, WorkBook, Range, ColInfo, CellObject, ExcelData
 import { DataFrame, FieldType } from '@grafana/data';
 
 export function readSpreadsheet(file: ArrayBuffer): DataFrame[] {
-  return workBookToFrames(read(file, { type: 'buffer' }));
+  return workBookToFrames(read(file, { type: 'buffer' , cellDates: true}));
 }
 
 export function workBookToFrames(wb: WorkBook): DataFrame[] {

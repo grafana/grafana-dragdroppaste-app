@@ -1,3 +1,5 @@
+import { DataFrameJSON } from "@grafana/data";
+
 export interface Dataset {
   kind: string;
   apiVersion: string;
@@ -8,7 +10,7 @@ export interface Dataset {
   spec: {
     title: string;
     description: string;
-    data: object;
+    data: DataFrameJSON;
     info: Array<{ rows: number }>;
   };
 }
