@@ -8,21 +8,8 @@ import { useParams } from 'react-router-dom';
 import { ROUTES } from 'constants';
 import moment from 'moment';
 import AutoSizer from 'react-virtualized-auto-sizer';
+import { Dataset } from 'types';
 
-interface Dataset {
-  kind: string;
-  apiVersion: string;
-  metadata: {
-    name: string;
-    creationTimestamp: string;
-  };
-  spec: {
-    title: string;
-    description: string;
-    data: object;
-    info: Array<{ rows: number }>;
-  };
-}
 
 const ListView = () => {
 

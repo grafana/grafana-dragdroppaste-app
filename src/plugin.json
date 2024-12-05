@@ -41,7 +41,8 @@
     "plugins": []
   },
   "extensions": { "addedHooks": [
-    {"title": "foo", "targets": ["dashboard/grid"]}
+    {"title": "foo", "targets": ["dashboard/grid"]},
+    {"title": "pasteHook", "targets": ["dashboard/dragndrop"]}
   ]
   }
 }
