@@ -4,6 +4,8 @@ import { concatMap, from, lastValueFrom, map, Observable, toArray } from 'rxjs';
 import { DataFrame, DataFrameJSON, dataFrameToJSON, toDataFrame } from '@grafana/data';
 import { v6 as uuidv6 } from 'uuid';
 import { getBackendSrv } from '@grafana/runtime';
+import { Dataset } from 'types';
+import { constructPanel } from './constructPanel';
 
 export interface FileImportResult {
   dataFrames: DataFrame[];
@@ -62,23 +64,23 @@ export function filesToDataframes(files: File[]): Observable<FileImportResult> {
 export async function fileHandler(file: File) {
   const backendSrv = getBackendSrv();
 
-  return await lastValueFrom(
+  const res = await lastValueFrom(
     filesToDataframes([file]).pipe(
       concatMap((res) => {
         const ds = makeDataset(
           res.dataFrames.map((x) => dataFrameToJSON(x)),
           res.file.name,
-          res.file.name,
+          res.file.name
         );
 
         // Return the observable for the post request
-        return from(backendSrv.post('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds)).pipe(
-          map((result) => result.metadata.name) // Extract metadata.name from the result
-        );
+        return from(backendSrv.post<Dataset>('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds));
       }),
       toArray() // Collect all metadata.names into an array
     )
   );
+
+  return constructPanel(res[0]);
 }
 
 function makeDataset(frames: DataFrameJSON[], title: string, description: string) {
@@ -86,7 +88,7 @@ function makeDataset(frames: DataFrameJSON[], title: string, description: string
     const newFields = f.schema?.fields.map((x) => ({
       name: x.name,
       type: x.type,
-      typeInfo: { frame: x.type === 'number' ? 'int64' : x.type, nullable: true },
+      typeInfo: { frame: x.type === 'number' ? 'float64' : x.type, nullable: true },
     }));
     return { ...f, schema: { ...f.schema, fields: newFields } };
   });

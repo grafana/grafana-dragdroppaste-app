@@ -3,6 +3,7 @@ import { DataFrameJSON, dataFrameToJSON, Field, FieldType } from '@grafana/data'
 import { v6 as uuidv6 } from 'uuid';
 import { getBackendSrv } from '@grafana/runtime';
 import { Dataset } from 'types';
+import { constructPanel } from './constructPanel';
 
 
 
@@ -43,28 +44,7 @@ export async function pasteHandler(data: string) {
 
   const result = await backendSrv.post('/apis/dataset.grafana.app/v0alpha1/namespaces/default/datasets', ds) as Dataset;
 
-  const panel = {
-    id: 0,
-    type: 'table',
-    title: result.metadata.name,
-    options: {},
-    fieldConfig: {
-      defaults: {},
-      overrides: [],
-    },
-    targets: [
-      {
-        refId: 'A',
-        type: 'series',
-        source: 'unistore',
-        format: 'table',
-        dataset: result.metadata.name,
-      },
-    ],
-    datasource: { uid: 'fe5xn8w5do4xsf', type: 'yesoreyeram-infinity-datasource' },
-  };
-
-  return panel;
+  return constructPanel(result);
 }
 
 function makeDataset(frames: DataFrameJSON[], title: string, description: string) {

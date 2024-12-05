@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "app",
-  "name": "Dragdroppaste",
+  "name": "Dragndrop",
   "id": "grafana-dragdroppaste-app",
   "backend": true,
   "executable": "gpx_dragdroppaste",
@@ -12,8 +12,8 @@
       "name": "Grafana"
     },
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "img/dragndrop.png",
+      "large": "img/dragndrop.png"
     },
     "screenshots": [],
     "version": "%VERSION%",
