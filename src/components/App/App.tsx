@@ -6,10 +6,8 @@ const DatasetsPage = React.lazy(() => import('../../pages/DatasetsPage'));
 function App(props: AppRootProps) {
   return (
     <Routes>
-
-      {/* Default page */}
-      <Route path="*" element={<DatasetsPage />} />
-      <Route path={`${ROUTES.datasets}/:id?`} element={<DatasetsPage />} />
+      <Route path={`${ROUTES.datasets}/:name?`} element={<DatasetsPage />} />
+      <Route path="*" element={<DatasetsPage />}></Route>
     </Routes>
   );
 }
