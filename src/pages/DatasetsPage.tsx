@@ -62,15 +62,17 @@ const ListView = () => {
                 <div>{ds.spec.info.length} series</div>
                 <div>{ds.spec.info.map((i) => i.rows).reduce((p, c) => p + c)} rows</div>
               </Card.Meta>
-              <Button
-                onClick={() => {
-                  deleteDataset(ds.metadata.name);
-                }}
-                aria-label="remove"
-                icon="trash-alt"
-              >
-                Delete dataset
-              </Button>
+              <Card.Tags>
+                <Button
+                  onClick={() => {
+                    deleteDataset(ds.metadata.name);
+                  }}
+                  aria-label="remove"
+                  icon="trash-alt"
+                >
+                  Delete dataset
+                </Button>
+              </Card.Tags>
             </Card>
           );
         })}
