@@ -82,7 +82,7 @@ export async function fileHandler(file: File) {
     )
   );
 
-  return constructPanel(res[0]);
+  return await constructPanel(res[0]);
 }
 
 
