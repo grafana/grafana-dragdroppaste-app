@@ -7,7 +7,7 @@ function table(df: DataFrameJSON[], ds: Dataset, dsUid: string) {
   const panel = {
     id: 0,
     type: 'table',
-    title: ds.metadata.name,
+    title: ds.spec.title,
     options: {},
     fieldConfig: {
       defaults: {},
@@ -34,7 +34,7 @@ function timeseries(df: DataFrameJSON[], ds: Dataset, dsUid: string) {
     const panel = {
       id: 0,
       type: 'timeseries',
-      title: ds.metadata.name,
+      title: ds.spec.title,
       options: {},
       fieldConfig: {
         defaults: {},
@@ -56,6 +56,76 @@ function timeseries(df: DataFrameJSON[], ds: Dataset, dsUid: string) {
   }
 }
 
+function barchart(df: DataFrameJSON[], ds: Dataset, dsUid: string) {
+  const firstFrame = df[0];
+  if (
+    firstFrame.schema?.fields.length === 2 &&
+    firstFrame.schema?.fields.find((x) => x.type === FieldType.string) &&
+    firstFrame.schema?.fields.find((x) => x.type === FieldType.number)
+  ) {
+    const panel = {
+      id: 0,
+      type: 'barchart',
+      title: ds.spec.title,
+      options: {},
+      fieldConfig: {
+        defaults: {},
+        overrides: [],
+      },
+      targets: [
+        {
+          refId: 'A',
+          type: 'series',
+          source: 'unistore',
+          format: 'table',
+          dataset: ds.metadata.name,
+        },
+      ],
+      datasource: { uid: dsUid, type: 'yesoreyeram-infinity-datasource' },
+    };
+
+    return { icon: '', title: 'Use content as barchart', panel: panel };
+  }
+}
+
+function piechart(df: DataFrameJSON[], ds: Dataset, dsUid: string) {
+  const firstFrame = df[0];
+  if (
+    firstFrame.schema?.fields.length === 2 &&
+    firstFrame.schema?.fields.find((x) => x.type === FieldType.string) &&
+    firstFrame.schema?.fields.find((x) => x.type === FieldType.number)
+  ) {
+    const panel = {
+      id: 0,
+      type: 'piechart',
+      title: ds.spec.title,
+      options: {
+        reduceOptions: {
+          values: true,
+          calcs: ['lastNotNull'],
+          fields: '',
+        },
+      },
+      fieldConfig: {
+        defaults: {},
+        overrides: [],
+      },
+      targets: [
+        {
+          refId: 'A',
+          type: 'series',
+          source: 'unistore',
+          format: 'table',
+          dataset: ds.metadata.name,
+        },
+      ],
+      datasource: { uid: dsUid, type: 'yesoreyeram-infinity-datasource' },
+    };
+
+    return { icon: '', title: 'Use content as piechart', panel: panel };
+  }
+}
+
 function geomap(df: DataFrameJSON[], ds: Dataset, dsUid: string) {
   const firstFrame = df[0];
   if (
@@ -65,7 +135,7 @@ function geomap(df: DataFrameJSON[], ds: Dataset, dsUid: string) {
     const panel = {
       id: 0,
       type: 'geomap',
-      title: ds.metadata.name,
+      title: ds.spec.title,
       options: {},
       fieldConfig: {
         defaults: {},
@@ -95,6 +165,6 @@ export async function constructPanel(input: { ds: Dataset; originalFrames: DataF
   }
   const { ds, originalFrames } = input;
 
-  const asd = [timeseries, geomap, table].map((f) => f(originalFrames, ds, dsUid)).filter((r) => r !== undefined);
+  const asd = [timeseries, geomap, barchart, piechart, table].map((f) => f(originalFrames, ds, dsUid)).filter((r) => r !== undefined);
   return asd;
 }
